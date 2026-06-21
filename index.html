@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>나의 체질 체크리스트 | 쎄시아뷰티</title>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: #faf9f7; color: #222; min-height: 100vh; }
@@ -297,9 +298,12 @@ input:focus { outline: none; border-color: #c9a96e; }
 <button class="btn-main" id="mainBtn" onclick="submit()">결과 전송하기</button>
 
 <div class="success-box" id="successBox">
-  <div class="success-title">✓ 전송 완료! 원장님이 결과를 확인합니다.</div>
+  <div class="success-title">✓ 전송 완료! 원장님께 결과가 전달되었습니다.</div>
+</div>
+
+<div class="success-box" id="errorBox" style="background:#fdeeee;border-color:#e8b8b8;display:none">
+  <div class="success-title" style="color:#a03030">전송 중 문제가 발생했어요. 아래 버튼으로 결과를 복사해서 직접 전달해주세요.</div>
   <button class="action-btn" onclick="copyResult()">결과 텍스트 복사하기</button>
-  <button class="action-btn" onclick="openKakao()">카카오톡으로 공유하기</button>
 </div>
 
 <div class="footer">
@@ -379,17 +383,38 @@ ${(main.s-sub.s)<=4 && sub.s>=6 ? '→ 복합 체질 관리 권장' : ''}
 추천 오일: ${oilInfo[main.i]}`;
 }
 
+// EmailJS 초기화
+(function(){
+  emailjs.init({ publicKey: "fh92cd-xNGV5KzyEz" });
+})();
+
 function submit() {
   const name = document.getElementById('name').value.trim();
   if(!name){ alert('성함을 입력해주세요.'); return; }
   if(Math.max(...scores)===0){ alert('체크리스트를 먼저 작성해주세요.'); return; }
-  // 구글 폼 URL을 여기에 삽입 (아래 가이드 참고)
-  const FORM_URL = 'YOUR_GOOGLE_FORM_URL_HERE';
-  if(FORM_URL !== 'YOUR_GOOGLE_FORM_URL_HERE') {
-    window.open(FORM_URL, '_blank');
-  }
-  document.getElementById('mainBtn').style.display='none';
-  document.getElementById('successBox').classList.add('show');
+
+  const phone = document.getElementById('phone').value.trim() || '-';
+  const visit = document.getElementById('visit').value.trim() || '-';
+  const resultMessage = getResultText();
+
+  const btn = document.getElementById('mainBtn');
+  btn.disabled = true;
+  btn.textContent = '전송 중...';
+
+  emailjs.send('service_38siy3v', 'template_a945j4q', {
+    name: name,
+    phone: phone,
+    visit: visit,
+    message: resultMessage
+  }).then(function() {
+    btn.style.display = 'none';
+    document.getElementById('successBox').classList.add('show');
+  }, function(error) {
+    btn.disabled = false;
+    btn.textContent = '결과 전송하기';
+    document.getElementById('errorBox').style.display = 'block';
+    console.error('EmailJS error:', error);
+  });
 }
 
 function copyResult() {
@@ -402,13 +427,6 @@ function copyResult() {
     ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
     alert('복사됐어요!');
   });
-}
-
-function openKakao() {
-  const txt = getResultText();
-  const encoded = encodeURIComponent(txt);
-  window.open('https://sharer.kakao.com/talk/friends/picker/link?app_key=&link_ver=4.0&template_id=&text='+encoded, '_blank');
-  alert('카카오톡을 열어서 원장님께 결과를 붙여넣기로 보내주세요!');
 }
 </script>
 </body>
