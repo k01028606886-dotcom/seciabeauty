@@ -284,6 +284,10 @@ input:focus { outline: none; border-color: #c9a96e; }
     <div class="info-label">방문 예정일 (선택)</div>
     <input type="text" id="visit" placeholder="예: 6월 25일 오후 2시">
   </div>
+  <div class="info-single">
+    <div class="info-label">특이사항 (선택) <span style="font-size:11px;color:#b0a89a">— 다낭성, PMS, 임신 준비 등 미리 알려주세요</span></div>
+    <textarea id="notes" placeholder="예: 다낭성 난소증후군 있음 / 생리 전 감정 기복 심함 / 임신 준비 중" style="width:100%;padding:0.65rem 0.875rem;border:1px solid #ddd8d0;border-radius:8px;font-size:13px;color:#2a2420;background:white;font-family:inherit;resize:vertical;min-height:70px;line-height:1.6;-webkit-appearance:none;"></textarea>
+  </div>
 </div>
 
 <div class="result-box" id="resultBox">
@@ -362,19 +366,22 @@ function getResultText() {
   const name = document.getElementById('name').value || '(미입력)';
   const phone = document.getElementById('phone').value || '-';
   const visit = document.getElementById('visit').value || '-';
+  const notes = document.getElementById('notes').value || '-';
   const sorted = scores.map((s,i)=>({s,i})).sort((a,b)=>b.s-a.s);
   const main = sorted[0], sub = sorted[1];
+  const bar = (n) => '█'.repeat(n) + '░'.repeat(20-n);
   return `[쎄시아뷰티 체질 체크리스트 결과]
 
 고객명: ${name}
 연락처: ${phone}
 방문예정: ${visit}
+특이사항: ${notes}
 
-점수:
-• 냉 체질: ${scores[0]}점
-• 열 체질: ${scores[1]}점
-• 습 체질: ${scores[2]}점
-• 긴장 체질: ${scores[3]}점
+━━━ 체질 점수 ━━━
+냉 체질  ${bar(scores[0])} ${scores[0]}점
+열 체질  ${bar(scores[1])} ${scores[1]}점
+습 체질  ${bar(scores[2])} ${scores[2]}점
+긴장체질 ${bar(scores[3])} ${scores[3]}점
 
 주 체질: ${typeLabels[main.i]} (${main.s}점)
 부 체질: ${sub.s>=6 ? typeLabels[sub.i]+' ('+sub.s+'점)' : '해당 없음'}
@@ -395,6 +402,7 @@ function submit() {
 
   const phone = document.getElementById('phone').value.trim() || '-';
   const visit = document.getElementById('visit').value.trim() || '-';
+  const notes = document.getElementById('notes').value.trim() || '-';
   const resultMessage = getResultText();
 
   const btn = document.getElementById('mainBtn');
